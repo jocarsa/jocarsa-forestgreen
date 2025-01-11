@@ -82,7 +82,7 @@ body {
 
 /* Clase Oculta */
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* Contenedor */

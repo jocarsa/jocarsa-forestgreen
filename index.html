@@ -274,6 +274,7 @@
 
     <!-- JavaScript Externo -->
     <script>
+    document.getElementById('main-app').classList.add('hidden');
         // Estado del Front-end
         let currentUserId = null;
         let currentContactId = null;
@@ -283,7 +284,7 @@
         let lastMessageId = 0; // Para rastrear el último mensaje cargado
         let typingTimeout = null; // Para manejar el tiempo de espera del indicador de escritura
         let isTyping = false; // Para rastrear si el usuario está escribiendo actualmente
-
+		
         // Mostrar/ocultar secciones
         function showLogin() {
             hideAllAuthPanels();
