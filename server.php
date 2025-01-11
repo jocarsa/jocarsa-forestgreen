@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Abrir o crear la base de datos SQLite
-$db = new PDO('sqlite:../../../databases/forestgreen.sqlite');
+$db = new PDO('sqlite:../databases/forestgreen.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 // Crear tablas si no existen
