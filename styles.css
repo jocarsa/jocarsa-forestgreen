@@ -441,7 +441,7 @@ body {
 @media (max-width: 768px) {
     .main-panel {
         flex-direction: column;
-        height: 100vh;
+        height: 80vh;
     }
     .left-pane, .right-pane {
         width: 100%;
