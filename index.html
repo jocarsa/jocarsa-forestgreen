@@ -297,11 +297,11 @@
 
         function showMain() {
             hideAllAuthPanels();
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('show-login-btn').classList.add('hidden');
-            document.getElementById('show-signup-btn').classList.add('hidden');
-            loadProfilePhoto(); // Cargar foto de perfil cuando se muestra la aplicación principal
+				 document.getElementById('main-app').classList.remove('hidden');
+				 document.getElementById('user-info').classList.remove('hidden');
+				 document.getElementById('show-login-btn').classList.add('hidden');
+				 document.getElementById('show-signup-btn').classList.add('hidden');
+				 loadProfilePhoto(); // Cargar foto de perfil cuando se muestra la aplicación principal
 
             // Ajustar paneles según el dispositivo
             if (isMobile()) {
@@ -340,11 +340,11 @@
 
         // Mostrar Panel de Chat (después de seleccionar un contacto)
         function showChat() {
-            if (isMobile()) {
-                document.getElementById('left-pane').classList.add('hidden-on-mobile');
-                document.getElementById('right-pane').classList.remove('hidden-on-mobile');
-            }
-        }
+				 if (currentContactId && isMobile()) {
+					  document.getElementById('left-pane').classList.add('hidden-on-mobile');
+					  document.getElementById('right-pane').classList.remove('hidden-on-mobile');
+				 }
+			}
 
         // Pantalla inicial
         showLogin();
@@ -474,9 +474,11 @@
 
         // Cargar Contactos y Grupos
         async function loadContactsAndGroups() {
-            await loadContacts();
-            await loadGroups();
-        }
+				 console.log('Loading contacts and groups...');
+				 await loadContacts();
+				 await loadGroups();
+				 console.log('Contacts and groups loaded.');
+			}
 
         // Cargar contactos individuales
         async function loadContacts() {
@@ -786,19 +788,20 @@
         }
 
         // Sondeo para nuevos mensajes
-        function startPolling() {
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(async () => {
-                if (currentContactId) {
-                    if (currentContactType === 'user') {
-                        await loadMessages(currentContactUsername);
-                    } else if (currentContactType === 'group') {
-                        const groupName = document.querySelector('.chat-header h3').textContent.replace('Grupo: ', '');
-                        await loadGroupMessages(currentContactId, groupName);
-                    }
-                }
-            }, 3000); // cada 3 segundos
-        }
+			function startPolling() {
+				 if (refreshInterval) clearInterval(refreshInterval);
+				 refreshInterval = setInterval(async () => {
+					  console.log('Polling: currentContactId:', currentContactId);
+					  if (currentContactId) {
+						   if (currentContactType === 'user') {
+						       await loadMessages(currentContactUsername);
+						   } else if (currentContactType === 'group') {
+						       const groupName = document.querySelector('.chat-header h3').textContent.replace('Grupo: ', '');
+						       await loadGroupMessages(currentContactId, groupName);
+						   }
+					  }
+				 }, 3000); // every 3 seconds
+			}
 
         // Gestionar Grupo (Renombrar, Eliminar, Agregar/Eliminar Miembros)
         async function manageGroup(groupId, groupName) {
@@ -1071,19 +1074,20 @@
 
         // Manejar el redimensionamiento de la ventana para ajustar paneles
         window.addEventListener('resize', function() {
-            if (!isMobile()) {
-                // Asegurar que ambos paneles sean visibles en escritorio
-                document.getElementById('left-pane').classList.remove('hidden-on-mobile');
-                document.getElementById('right-pane').classList.remove('hidden-on-mobile');
-                document.getElementById('right-pane').classList.remove('full-width');
-            } else {
-                // Si está en móvil, ocultar el panel de chat si no hay un contacto seleccionado
-                if (!currentContactId) {
-                    document.getElementById('right-pane').classList.add('hidden-on-mobile');
-                    document.getElementById('left-pane').classList.remove('hidden-on-mobile');
-                }
-            }
-        });
+    console.log('Window resized. Width:', window.innerWidth);
+    if (!isMobile()) {
+        // Ensure both panels are visible
+        document.getElementById('left-pane').classList.remove('hidden-on-mobile');
+        document.getElementById('right-pane').classList.remove('hidden-on-mobile');
+        document.getElementById('right-pane').classList.remove('full-width');
+    } else {
+        // If on mobile and no contact is selected, show contacts pane
+        if (!currentContactId) {
+            document.getElementById('right-pane').classList.add('hidden-on-mobile');
+            document.getElementById('left-pane').classList.remove('hidden-on-mobile');
+        }
+    }
+});
 
         // Verificación inicial al cargar
         window.addEventListener('load', function() {
