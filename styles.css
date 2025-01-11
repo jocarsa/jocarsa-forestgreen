@@ -530,4 +530,7 @@ body {
     display: inline-block;
     margin-right: 10px;
 }
-
+.chat-input-area button {
+	padding:3px;
+	margin:0px !important;
+}
