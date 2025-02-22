@@ -601,7 +601,7 @@
         }
 
         // Cargar mensajes para un contacto individual
-        async function loadMessages(contactUsername) {
+        async function loadMessages(contactUsername, isPolling = false) {
     const formData = new FormData();
     formData.append('action', 'get_messages');
     formData.append('user_id', currentUserId);
@@ -617,7 +617,9 @@
 
     if (data.success && data.messages) {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = ''; // Clear existing messages
+        if (!isPolling) {
+            chatBox.innerHTML = ''; // Clear existing messages only on initial load
+        }
         data.messages.forEach(msg => {
             if (msg.id > lastMessageId) {
                 const div = document.createElement('div');
@@ -679,8 +681,9 @@
 }
 
 
+
         // Cargar mensajes para un grupo
-        async function loadGroupMessages(groupId, groupName) {
+        async function loadGroupMessages(groupId, groupName, isPolling = false) {
     const formData = new FormData();
     formData.append('action', 'get_messages');
     formData.append('user_id', currentUserId);
@@ -696,7 +699,9 @@
 
     if (data.success && data.messages) {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = ''; // Clear existing messages
+        if (!isPolling) {
+            chatBox.innerHTML = ''; // Clear existing messages only on initial load
+        }
         data.messages.forEach(msg => {
             if (msg.id > lastMessageId) {
                 const div = document.createElement('div');
@@ -758,6 +763,7 @@
 }
 
 
+
         // Enviar mensaje
         async function sendMessage() {
             const chatInput = document.getElementById('chat-input');
@@ -800,19 +806,20 @@
 
         // Sondeo para nuevos mensajes
 			function startPolling() {
-				 if (refreshInterval) clearInterval(refreshInterval);
-				 refreshInterval = setInterval(async () => {
-					  console.log('Polling: currentContactId:', currentContactId);
-					  if (currentContactId) {
-						   if (currentContactType === 'user') {
-						       await loadMessages(currentContactUsername);
-						   } else if (currentContactType === 'group') {
-						       const groupName = document.querySelector('.chat-header h3').textContent.replace('Grupo: ', '');
-						       await loadGroupMessages(currentContactId, groupName);
-						   }
-					  }
-				 }, 3000); // every 3 seconds
-			}
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(async () => {
+        console.log('Polling: currentContactId:', currentContactId);
+        if (currentContactId) {
+            if (currentContactType === 'user') {
+                await loadMessages(currentContactUsername, true);
+            } else if (currentContactType === 'group') {
+                const groupName = document.querySelector('.chat-header h3').textContent.replace('Grupo: ', '');
+                await loadGroupMessages(currentContactId, groupName, true);
+            }
+        }
+    }, 3000); // every 3 seconds
+}
+
 
         // Gestionar Grupo (Renombrar, Eliminar, Agregar/Eliminar Miembros)
         async function manageGroup(groupId, groupName) {
