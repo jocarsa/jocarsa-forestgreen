@@ -765,44 +765,70 @@
 
 
         // Enviar mensaje
-        async function sendMessage() {
-            const chatInput = document.getElementById('chat-input');
-            const message = chatInput.value.trim();
+       async function sendMessage() {
+    const chatInput = document.getElementById('chat-input');
+    const message = chatInput.value.trim();
 
-            if (!message && !document.getElementById('chat-image-input').files[0]) return;
+    if (!message && !document.getElementById('chat-image-input').files[0]) return;
 
-            const formData = new FormData();
-            formData.append('action', 'send_message');
-            formData.append('user_id', currentUserId);
-            formData.append('contact_id', currentContactId);
-            formData.append('message', message);
-            formData.append('type', currentContactType); // 'user' o 'group'
+    const formData = new FormData();
+    formData.append('action', 'send_message');
+    formData.append('user_id', currentUserId);
+    formData.append('contact_id', currentContactId);
+    formData.append('message', message);
+    formData.append('type', currentContactType); // 'user' o 'group'
 
-            // Verificar si se ha seleccionado una imagen
-            const imageFile = document.getElementById('chat-image-input').files[0];
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
+    // Verificar si se ha seleccionado una imagen
+    const imageFile = document.getElementById('chat-image-input').files[0];
+    if (imageFile) {
+        formData.append('image', imageFile);
+    }
 
-            const response = await fetch('https://forestgreen.jocarsa.com/server.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+    const response = await fetch('https://forestgreen.jocarsa.com/server.php', {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
 
-            if (data.success) {
-                chatInput.value = '';
-                document.getElementById('chat-image-input').value = ''; // Reiniciar el input de imagen
-                if (currentContactType === 'user') {
-                    await loadMessages(currentContactUsername);
-                } else if (currentContactType === 'group') {
-                    const groupName = document.querySelector('.chat-header h3').textContent.replace('Grupo: ', '');
-                    await loadGroupMessages(currentContactId, groupName);
-                }
-            } else {
-                alert(data.message);
-            }
+    if (data.success) {
+        chatInput.value = '';
+        document.getElementById('chat-image-input').value = ''; // Reiniciar el input de imagen
+
+        // Append the new message to the chat-box without clearing existing messages
+        const chatBox = document.getElementById('chat-box');
+        const div = document.createElement('div');
+        div.classList.add('chat-message');
+        div.classList.add('from-me');
+        div.dataset.messageId = data.message_id; // Assuming the server returns the message ID
+
+        if (message) {
+            div.textContent = message;
         }
+
+        // Handle image if sent
+        if (imageFile) {
+            const imgUrl = URL.createObjectURL(imageFile);
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.alt = 'Imagen';
+            img.classList.add('chat-image');
+            div.appendChild(document.createElement('br'));
+            div.appendChild(img);
+        }
+
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Update lastMessageId
+        lastMessageId = Math.max(lastMessageId, data.message_id);
+
+        // Mark messages as read
+        markMessagesAsRead();
+    } else {
+        alert(data.message);
+    }
+}
+
 
         // Sondeo para nuevos mensajes
 			function startPolling() {
