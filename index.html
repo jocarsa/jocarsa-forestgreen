@@ -602,157 +602,161 @@
 
         // Cargar mensajes para un contacto individual
         async function loadMessages(contactUsername) {
-            const formData = new FormData();
-            formData.append('action', 'get_messages');
-            formData.append('user_id', currentUserId);
-            formData.append('contact_id', currentContactId);
-            formData.append('type', 'user');
-            formData.append('last_message_id', lastMessageId); // Para carga incremental
+    const formData = new FormData();
+    formData.append('action', 'get_messages');
+    formData.append('user_id', currentUserId);
+    formData.append('contact_id', currentContactId);
+    formData.append('type', 'user');
+    formData.append('last_message_id', lastMessageId); // Para carga incremental
 
-            const response = await fetch('https://forestgreen.jocarsa.com/server.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+    const response = await fetch('https://forestgreen.jocarsa.com/server.php', {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
 
-            if (data.success && data.messages) {
-                const chatBox = document.getElementById('chat-box');
-                data.messages.forEach(msg => {
-                    if (msg.id > lastMessageId) {
-                        const div = document.createElement('div');
-                        div.classList.add('chat-message');
-                        div.classList.add(msg.from_id == currentUserId ? 'from-me' : 'from-them');
-                        div.dataset.messageId = msg.id; // Para recibos de lectura
+    if (data.success && data.messages) {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = ''; // Clear existing messages
+        data.messages.forEach(msg => {
+            if (msg.id > lastMessageId) {
+                const div = document.createElement('div');
+                div.classList.add('chat-message');
+                div.classList.add(msg.from_id == currentUserId ? 'from-me' : 'from-them');
+                div.dataset.messageId = msg.id; // Para recibos de lectura
 
-                        if (msg.message) {
-                            div.textContent = msg.message;
-                        }
+                if (msg.message) {
+                    div.textContent = msg.message;
+                }
 
-                        // Manejar Recibos de Lectura
-                        if (msg.read_at && msg.from_id != currentUserId) {
-                            const readReceipt = document.createElement('span');
-                            readReceipt.classList.add('read-receipt');
-                            readReceipt.textContent = '✓✓'; // Doble marca de verificación
-                            div.appendChild(readReceipt);
-                        }
+                // Manejar Recibos de Lectura
+                if (msg.read_at && msg.from_id != currentUserId) {
+                    const readReceipt = document.createElement('span');
+                    readReceipt.classList.add('read-receipt');
+                    readReceipt.textContent = '✓✓'; // Doble marca de verificación
+                    div.appendChild(readReceipt);
+                }
 
-                        if (msg.id) { // Asumiendo que cada mensaje tiene un ID único
-                            // Obtener y mostrar imagen si existe
-                            fetch(`https://forestgreen.jocarsa.com/server.php?action=get_image&message_id=${msg.id}`)
-                                .then(response => {
-                                    if (response.ok && response.headers.get('Content-Type').startsWith('image/')) {
-                                        return response.blob();
-                                    }
-                                })
-                                .then(blob => {
-                                    if (blob) {
-                                        const imgUrl = URL.createObjectURL(blob);
-                                        const img = document.createElement('img');
-                                        img.src = imgUrl;
-                                        img.alt = 'Imagen';
-                                        img.classList.add('chat-image');
-                                        div.appendChild(document.createElement('br'));
-                                        div.appendChild(img);
-                                    }
-                                })
-                                .catch(error => console.error('Error cargando imagen:', error));
-                        }
+                if (msg.id) { // Asumiendo que cada mensaje tiene un ID único
+                    // Obtener y mostrar imagen si existe
+                    fetch(`https://forestgreen.jocarsa.com/server.php?action=get_image&message_id=${msg.id}`)
+                        .then(response => {
+                            if (response.ok && response.headers.get('Content-Type').startsWith('image/')) {
+                                return response.blob();
+                            }
+                        })
+                        .then(blob => {
+                            if (blob) {
+                                const imgUrl = URL.createObjectURL(blob);
+                                const img = document.createElement('img');
+                                img.src = imgUrl;
+                                img.alt = 'Imagen';
+                                img.classList.add('chat-image');
+                                div.appendChild(document.createElement('br'));
+                                div.appendChild(img);
+                            }
+                        })
+                        .catch(error => console.error('Error cargando imagen:', error));
+                }
 
-                        chatBox.appendChild(div);
-                        lastMessageId = Math.max(lastMessageId, msg.id);
-                    }
-                });
-                chatBox.scrollTop = chatBox.scrollHeight;
-
-                // Actualizar encabezado del chat
-                document.getElementById('chat-header').innerHTML = `
-                    <button class="back-button" onclick="showContacts()">←</button>
-                    <h3>Chat con ${contactUsername}</h3>
-                `;
-
-                showChat(); // Asegurar que el panel de chat sea visible en móviles
-
-                // Marcar mensajes como leídos
-                markMessagesAsRead();
+                chatBox.appendChild(div);
+                lastMessageId = Math.max(lastMessageId, msg.id);
             }
-        }
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Actualizar encabezado del chat
+        document.getElementById('chat-header').innerHTML = `
+            <button class="back-button" onclick="showContacts()">←</button>
+            <h3>Chat con ${contactUsername}</h3>
+        `;
+
+        showChat(); // Asegurar que el panel de chat sea visible en móviles
+
+        // Marcar mensajes como leídos
+        markMessagesAsRead();
+    }
+}
+
 
         // Cargar mensajes para un grupo
         async function loadGroupMessages(groupId, groupName) {
-            const formData = new FormData();
-            formData.append('action', 'get_messages');
-            formData.append('user_id', currentUserId);
-            formData.append('contact_id', groupId);
-            formData.append('type', 'group');
-            formData.append('last_message_id', lastMessageId); // Para carga incremental
+    const formData = new FormData();
+    formData.append('action', 'get_messages');
+    formData.append('user_id', currentUserId);
+    formData.append('contact_id', groupId);
+    formData.append('type', 'group');
+    formData.append('last_message_id', lastMessageId); // Para carga incremental
 
-            const response = await fetch('https://forestgreen.jocarsa.com/server.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+    const response = await fetch('https://forestgreen.jocarsa.com/server.php', {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
 
-            if (data.success && data.messages) {
-                const chatBox = document.getElementById('chat-box');
-                data.messages.forEach(msg => {
-                    if (msg.id > lastMessageId) {
-                        const div = document.createElement('div');
-                        div.classList.add('chat-message');
-                        div.classList.add(msg.from_id == currentUserId ? 'from-me' : 'from-them');
-                        div.dataset.messageId = msg.id; // Para recibos de lectura
+    if (data.success && data.messages) {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = ''; // Clear existing messages
+        data.messages.forEach(msg => {
+            if (msg.id > lastMessageId) {
+                const div = document.createElement('div');
+                div.classList.add('chat-message');
+                div.classList.add(msg.from_id == currentUserId ? 'from-me' : 'from-them');
+                div.dataset.messageId = msg.id; // Para recibos de lectura
 
-                        if (msg.message) {
-                            div.textContent = msg.message;
-                        }
+                if (msg.message) {
+                    div.textContent = msg.message;
+                }
 
-                        // Manejar Recibos de Lectura
-                        if (msg.read_at && msg.from_id != currentUserId) {
-                            const readReceipt = document.createElement('span');
-                            readReceipt.classList.add('read-receipt');
-                            readReceipt.textContent = '✓✓'; // Doble marca de verificación
-                            div.appendChild(readReceipt);
-                        }
+                // Manejar Recibos de Lectura
+                if (msg.read_at && msg.from_id != currentUserId) {
+                    const readReceipt = document.createElement('span');
+                    readReceipt.classList.add('read-receipt');
+                    readReceipt.textContent = '✓✓'; // Doble marca de verificación
+                    div.appendChild(readReceipt);
+                }
 
-                        if (msg.id) { // Asumiendo que cada mensaje tiene un ID único
-                            // Obtener y mostrar imagen si existe
-                            fetch(`https://forestgreen.jocarsa.com/server.php?action=get_image&message_id=${msg.id}`)
-                                .then(response => {
-                                    if (response.ok && response.headers.get('Content-Type').startsWith('image/')) {
-                                        return response.blob();
-                                    }
-                                })
-                                .then(blob => {
-                                    if (blob) {
-                                        const imgUrl = URL.createObjectURL(blob);
-                                        const img = document.createElement('img');
-                                        img.src = imgUrl;
-                                        img.alt = 'Imagen';
-                                        img.classList.add('chat-image');
-                                        div.appendChild(document.createElement('br'));
-                                        div.appendChild(img);
-                                    }
-                                })
-                                .catch(error => console.error('Error cargando imagen:', error));
-                        }
+                if (msg.id) { // Asumiendo que cada mensaje tiene un ID único
+                    // Obtener y mostrar imagen si existe
+                    fetch(`https://forestgreen.jocarsa.com/server.php?action=get_image&message_id=${msg.id}`)
+                        .then(response => {
+                            if (response.ok && response.headers.get('Content-Type').startsWith('image/')) {
+                                return response.blob();
+                            }
+                        })
+                        .then(blob => {
+                            if (blob) {
+                                const imgUrl = URL.createObjectURL(blob);
+                                const img = document.createElement('img');
+                                img.src = imgUrl;
+                                img.alt = 'Imagen';
+                                img.classList.add('chat-image');
+                                div.appendChild(document.createElement('br'));
+                                div.appendChild(img);
+                            }
+                        })
+                        .catch(error => console.error('Error cargando imagen:', error));
+                }
 
-                        chatBox.appendChild(div);
-                        lastMessageId = Math.max(lastMessageId, msg.id);
-                    }
-                });
-                chatBox.scrollTop = chatBox.scrollHeight;
-
-                // Actualizar encabezado del chat
-                document.getElementById('chat-header').innerHTML = `
-                    <button class="back-button" onclick="showContacts()">←</button>
-                    <h3>Grupo: ${groupName}</h3>
-                `;
-
-                showChat(); // Asegurar que el panel de chat sea visible en móviles
-
-                // Marcar mensajes como leídos
-                markMessagesAsRead();
+                chatBox.appendChild(div);
+                lastMessageId = Math.max(lastMessageId, msg.id);
             }
-        }
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Actualizar encabezado del chat
+        document.getElementById('chat-header').innerHTML = `
+            <button class="back-button" onclick="showContacts()">←</button>
+            <h3>Grupo: ${groupName}</h3>
+        `;
+
+        showChat(); // Asegurar que el panel de chat sea visible en móviles
+
+        // Marcar mensajes como leídos
+        markMessagesAsRead();
+    }
+}
+
 
         // Enviar mensaje
         async function sendMessage() {
