@@ -284,7 +284,8 @@
         let lastMessageId = 0; // Para rastrear el último mensaje cargado
         let typingTimeout = null; // Para manejar el tiempo de espera del indicador de escritura
         let isTyping = false; // Para rastrear si el usuario está escribiendo actualmente
-		
+		let generalGroupId = null; // Para rastrear el ID del grupo "General"
+
         // Mostrar/ocultar secciones
         function showLogin() {
             hideAllAuthPanels();
@@ -566,6 +567,11 @@
 
                     // Cargar y establecer una foto de grupo por defecto o la foto del administrador
                     loadGroupProfilePhoto(group.id, `avatar-group-${group.id}`);
+
+                    // Verificar si es el grupo "General" y almacenar su ID
+                    if (group.name === 'General') {
+                        generalGroupId = group.id;
+                    }
                 });
             }
         }

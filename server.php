@@ -74,6 +74,8 @@ $db->exec("CREATE TABLE IF NOT EXISTS typing_status (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )");
 
+// Ensure the "General" group exists and all users are members
+ensureGeneralGroupExists($db);
 
 // Obtener acción de POST o GET
 $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
@@ -145,6 +147,24 @@ switch ($action) {
 
 // ------------------ FUNCIONES ------------------
 
+function ensureGeneralGroupExists($db) {
+    // Check if the "General" group exists
+    $stmt = $db->prepare("SELECT id FROM groups WHERE name = 'General'");
+    $stmt->execute();
+    $group = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$group) {
+        // Create the "General" group
+        $stmt = $db->prepare("INSERT INTO groups (name, admin_id) VALUES ('General', 1)");
+        $stmt->execute();
+        $groupId = $db->lastInsertId();
+
+        // Add all users to the "General" group
+        $stmt = $db->prepare("INSERT INTO group_members (group_id, user_id) SELECT ?, id FROM users");
+        $stmt->execute([$groupId]);
+    }
+}
+
 function signup($db) {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
@@ -167,6 +187,16 @@ function signup($db) {
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     $stmt = $db->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
     $stmt->execute([$username, $hashedPassword]);
+
+    // Add the new user to the "General" group
+    $stmt = $db->prepare("SELECT id FROM groups WHERE name = 'General'");
+    $stmt->execute();
+    $group = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($group) {
+        $groupId = $group['id'];
+        $stmt = $db->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, (SELECT id FROM users WHERE username = ?))");
+        $stmt->execute([$groupId, $username]);
+    }
 
     echo json_encode(['success' => true]);
 }
@@ -244,7 +274,7 @@ function getContacts($db) {
     }
 
     $stmt = $db->prepare("
-        SELECT u.id, u.username 
+        SELECT u.id, u.username
         FROM contacts c
         JOIN users u ON c.contact_id = u.id
         WHERE c.user_id = ?
